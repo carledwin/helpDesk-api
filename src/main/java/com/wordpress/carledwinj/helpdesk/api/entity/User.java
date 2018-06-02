@@ -27,6 +27,12 @@ public class User {
 	
 	private ProfileEnum profile;
 
+	public User(String email, String password, ProfileEnum profile) {
+		this.email = email;
+		this.password = password;
+		this.profile = profile;
+	}
+
 	public String getId() {
 		return id;
 	}
