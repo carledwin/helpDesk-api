@@ -1,0 +1,17 @@
+POST - http://localhost:8080/api/auth
+
+Content-Type - application/json
+
+body
+{"email":"carledwin@helpdesk.com", "password":"123456"}
+
+response
+{
+    "token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjYXJsZWR3aW5AaGVscGRlc2suY29tIiwiY3JlYXRlZCI6MTUyNzk4Mjc5NzU3NCwiZXhwIjoxNTI3OTgzNDAzfQ.brx-2Lvkh9B0IoqlFTwL5uimVboR3QqPvPB4OcvAC6GHcNRta388oANqB5KB_64Pr2xwNw-NdCnSlxeEdeQV7Q",
+    "user": {
+        "id": "5b132a9abc4cd415805d7a05",
+        "email": "carledwin@helpdesk.com",
+        "password": null,
+        "profile": "ROLE_ADMIN"
+    }
+}
