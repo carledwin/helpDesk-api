@@ -7,7 +7,7 @@ body
 
 response
 {
-    "token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjYXJsZWR3aW5AaGVscGRlc2suY29tIiwiY3JlYXRlZCI6MTUyNzk4Mjc5NzU3NCwiZXhwIjoxNTI3OTgzNDAzfQ.brx-2Lvkh9B0IoqlFTwL5uimVboR3QqPvPB4OcvAC6GHcNRta388oANqB5KB_64Pr2xwNw-NdCnSlxeEdeQV7Q",
+    "token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjYXJsZWR3aW5AaGVscGRlc2suY29tIiwiY3JlYXRlZCI6MTUyNzk5NDIwMzE1MCwiZXhwIjoxNTI3OTk0ODA4fQ.Rm5aAdoOwa5JjwaU2Cgn3citcFL08Dbnu6yhpI0OjScyVCGtnHfEfuHcEaqd-ODMGh6_2kugtjTTWaNHsUk_ng",
     "user": {
         "id": "5b132a9abc4cd415805d7a05",
         "email": "carledwin@helpdesk.com",
@@ -15,3 +15,10 @@ response
         "profile": "ROLE_ADMIN"
     }
 }
+
+POST - http://localhost:8080/api/user
+Content-Type - application/json
+Authorization eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjYXJsZWR3aW5AaGVscGRlc2suY29tIiwiY3JlYXRlZCI6MTUyNzk5NDIwMzE1MCwiZXhwIjoxNTI3OTk0ODA4fQ.Rm5aAdoOwa5JjwaU2Cgn3citcFL08Dbnu6yhpI0OjScyVCGtnHfEfuHcEaqd-ODMGh6_2kugtjTTWaNHsUk_ng
+
+body
+{"email":"carledwin@helpdesk.com", "password":"789012", "profile":"ROLE_ADMIN"}
