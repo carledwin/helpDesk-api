@@ -22,3 +22,14 @@ Authorization eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjYXJsZWR3aW5AaGVscGRlc2suY29tIiwiY
 
 body
 {"email":"carledwin@helpdesk.com", "password":"789012", "profile":"ROLE_ADMIN"}
+
+response
+{
+    "data": {
+        "id": "5b136445bc4cd4447d4a466f",
+        "email": "carledwin@helpdesk.com",
+        "password": "$2a$10$w2jcMbQxSqmzO0lG4UnqeOJQZonwviMWOOki887tOYwyTyn4N2KT.",
+        "profile": "ROLE_ADMIN"
+    },
+    "erros": []
+}

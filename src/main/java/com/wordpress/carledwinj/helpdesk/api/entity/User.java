@@ -27,6 +27,9 @@ public class User {
 	
 	private ProfileEnum profile;
 
+	public User() {
+	}
+	
 	public User(String email, String password, ProfileEnum profile) {
 		this.email = email;
 		this.password = password;

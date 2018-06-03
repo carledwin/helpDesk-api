@@ -68,7 +68,7 @@ public class JwtTokenUtil implements Serializable {
 			claims = null;
 		}
 
-		return null;
+		return claims;
 	}
 	
 	
