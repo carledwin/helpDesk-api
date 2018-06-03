@@ -64,7 +64,7 @@ public class UserController {
 				response.getErros().add("Register not found. Id: " + id);
 				return ResponseEntity.badRequest().body(response);
 			}
-			
+			response.setData(user);
 			return ResponseEntity.ok().body(response);
 		} catch (Exception e) {
 			return getResponseEntityException(response, e);
@@ -88,7 +88,8 @@ public class UserController {
 			
 			userService.delete(id);
 			
-			return ResponseEntity.ok().body(new Response<String>());
+			response.setData("Success exclusion.");
+			return ResponseEntity.ok().body(response);
 		} catch (Exception e) {
 			response.getErros().add("Internal server error: " + e.getMessage() + ", cause: "+ e.getCause());
 			return ResponseEntity.badRequest().body(response);

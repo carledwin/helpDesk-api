@@ -33,3 +33,81 @@ response
     },
     "erros": []
 }
+
+PUT - http://localhost:8080/api/user/
+Content-Type - application/json
+Authorization eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjYXJsZWR3aW5AaGVscGRlc2suY29tIiwiY3JlYXRlZCI6MTUyNzk5NDIwMzE1MCwiZXhwIjoxNTI3OTk0ODA4fQ.Rm5aAdoOwa5JjwaU2Cgn3citcFL08Dbnu6yhpI0OjScyVCGtnHfEfuHcEaqd-ODMGh6_2kugtjTTWaNHsUk_ng
+
+body 
+{"id":"5b136445bc4cd4447d4a466f", "email":"carledwin_alterado@helpdesk.com", "password":"789012", "profile":"ROLE_ADMIN"}
+
+response
+{
+    "data": {
+        "id": "5b136445bc4cd4447d4a466f",
+        "email": "carledwin_alterado@helpdesk.com",
+        "password": "$2a$10$2INFbISQuADJjuMi2/su..tQ/p5S5y8syiKuve/DTxLVoHdAPFlrS",
+        "profile": "ROLE_ADMIN"
+    },
+    "erros": []
+}
+
+
+GET - http://localhost:8080/api/user/0/10
+Content-Type - application/json
+Authorization eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjYXJsZWR3aW5AaGVscGRlc2suY29tIiwiY3JlYXRlZCI6MTUyNzk5NDIwMzE1MCwiZXhwIjoxNTI3OTk0ODA4fQ.Rm5aAdoOwa5JjwaU2Cgn3citcFL08Dbnu6yhpI0OjScyVCGtnHfEfuHcEaqd-ODMGh6_2kugtjTTWaNHsUk_ng
+
+response
+{
+    "data": {
+        "content": [
+            {
+                "id": "5b135f37bc4cd43fdef9c9d3",
+                "email": "admin@helpdesk.com",
+                "password": "$2a$10$HSQ8DInIPXNuLscT4RF2Z.E30CmrO9lHDQAPfqUq2uBt.VvcOEhWm",
+                "profile": "ROLE_ADMIN"
+            },
+            {
+                "id": "5b136445bc4cd4447d4a466f",
+                "email": "carledwin_alterado@helpdesk.com",
+                "password": "$2a$10$EklSoloWaOiXVxs.IJ9QJ.RWmUwb9U4IMXaWktEXFv.btEYRpNLlK",
+                "profile": "ROLE_ADMIN"
+            }
+        ],
+        "totalPages": 1,
+        "totalElements": 2,
+        "last": true,
+        "numberOfElements": 2,
+        "first": true,
+        "sort": null,
+        "size": 10,
+        "number": 0
+    },
+    "erros": []
+}
+
+GET - http://localhost:8080/api/user/5b136445bc4cd4447d4a466f
+Content-Type - application/json
+Authorization eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjYXJsZWR3aW5AaGVscGRlc2suY29tIiwiY3JlYXRlZCI6MTUyNzk5NDIwMzE1MCwiZXhwIjoxNTI3OTk0ODA4fQ.Rm5aAdoOwa5JjwaU2Cgn3citcFL08Dbnu6yhpI0OjScyVCGtnHfEfuHcEaqd-ODMGh6_2kugtjTTWaNHsUk_ng
+
+response
+{
+    "data": {
+        "id": "5b136445bc4cd4447d4a466f",
+        "email": "carledwin_alterado@helpdesk.com",
+        "password": "$2a$10$EklSoloWaOiXVxs.IJ9QJ.RWmUwb9U4IMXaWktEXFv.btEYRpNLlK",
+        "profile": "ROLE_ADMIN"
+    },
+    "erros": []
+}
+
+
+DELETE - http://localhost:8080/api/user/5b136445bc4cd4447d4a466f
+Content-Type - application/json
+Authorization eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjYXJsZWR3aW5AaGVscGRlc2suY29tIiwiY3JlYXRlZCI6MTUyNzk5NDIwMzE1MCwiZXhwIjoxNTI3OTk0ODA4fQ.Rm5aAdoOwa5JjwaU2Cgn3citcFL08Dbnu6yhpI0OjScyVCGtnHfEfuHcEaqd-ODMGh6_2kugtjTTWaNHsUk_ng
+
+response
+{
+    "data": "Success exclusion.",
+    "erros": []
+}
