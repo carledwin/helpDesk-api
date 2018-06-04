@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wordpress.carledwinj.helpdesk.api.dto.Summary;
@@ -34,6 +35,7 @@ import com.wordpress.carledwinj.helpdesk.api.service.TicketService;
 import com.wordpress.carledwinj.helpdesk.api.service.UserService;
 
 @RestController
+@RequestMapping("/api/ticket")
 @CrossOrigin(origins="*")
 public class TicketController {
 
@@ -101,52 +103,11 @@ public class TicketController {
 		}
 	}
 	
-	@PutMapping(value="/{id}/{status}")
+	@GetMapping("/{id}")
 	@PreAuthorize("hasAnyRole('CUSTOMER', 'TECHNICIAN')")
-	public ResponseEntity<Response<Ticket>> changeStatus(@PathVariable("id") String id, @PathVariable("status") String status, HttpServletRequest httpServletRequest, BindingResult bindingResult){
+	public ResponseEntity<Response<Ticket>> findById(@PathVariable("id") String id,	 HttpServletRequest httpServletRequest){
 		
 		Response<Ticket> response = new Response<>();
-		
-		try {
-			
-			validateChangeStatusTicket(id, status, bindingResult);
-			
-			if(bindingResult.hasErrors()) {
-				bindingResult.getAllErrors().forEach(error -> response.getErros().add(error.getDefaultMessage()));
-				return ResponseEntity.badRequest().body(response);
-			}
-			
-			Ticket currentTicket = ticketService.findById(id);
-			currentTicket.setStatus(StatusEnum.getStatus(status));
-			
-			if(status.equals("Assigned")) {		
-				currentTicket.setUser(getUserFromRequest(httpServletRequest));
-			}
-			
-			Ticket ticketPersisted = ticketService.createOrUpdate(currentTicket);
-			
-			ChangeStatus changeStatus = new ChangeStatus();
-			changeStatus.setUserChange(getUserFromRequest(httpServletRequest));
-			changeStatus.setStatus(StatusEnum.getStatus(status));
-			changeStatus.setTicket(ticketPersisted);
-			
-			ticketService.createChangeStatus(changeStatus);
-			
-			response.setData(ticketPersisted);
-			
-			return ResponseEntity.ok().body(response);
-		} catch (Exception e) {
-			
-			response.getErros().add("Ticket erro: " + e.getMessage() + ", cause: " + e.getCause());
-			return ResponseEntity.badRequest().body(response);
-		}
-	}
-	
-	@DeleteMapping("/{id}")
-	@PreAuthorize("hasAnyRole('CUSTOMER')")
-	public ResponseEntity<Response<String>> deleteById(@PathVariable("id") String id,	 HttpServletRequest httpServletRequest, BindingResult bindingResult){
-		
-		Response<String> response = new Response<>();
 		
 		try {
 			
@@ -157,9 +118,9 @@ public class TicketController {
 				return ResponseEntity.badRequest().body(response);
 			}
 			
-			ticketService.delete(id);
+			findChangesToTicket(ticket);
 			
-			response.setData("Success exclusion.");
+			response.setData(ticket);
 			
 			return ResponseEntity.ok().body(response);
 		} catch (Exception e) {
@@ -171,7 +132,7 @@ public class TicketController {
 	
 	@GetMapping("/{page}/{count}")
 	@PreAuthorize("hasAnyRole('CUSTOMER', 'TECHNICIAN')")
-	public ResponseEntity<Response<Page<Ticket>>> findAll(@PathVariable("page") int page,	@PathVariable("count") int count, HttpServletRequest httpServletRequest, BindingResult bindingResult){
+	public ResponseEntity<Response<Page<Ticket>>> findAll(@PathVariable("page") int page,	@PathVariable("count") int count, HttpServletRequest httpServletRequest){
 		
 		Response<Page<Ticket>> response = new Response<>();
 		Page<Ticket> tickets = null;
@@ -182,7 +143,7 @@ public class TicketController {
 			
 			if(userRequest.getProfile().equals(ProfileEnum.ROLE_TECHNICIAN)) {
 				tickets = ticketService.listTicket(page, count);
-			} else if(userRequest.getProfile().equals(ProfileEnum.ROLE_CUSTUMER)) {
+			} else if(userRequest.getProfile().equals(ProfileEnum.ROLE_CUSTOMER)) {
 				tickets = ticketService.findByCurrentUser(page, count, userRequest.getId());
 			}
 			
@@ -208,10 +169,18 @@ public class TicketController {
 	
 	@GetMapping("/{page}/{count}/{number}/{title}/{status}/{priority}/{assigned}")
 	@PreAuthorize("hasAnyRole('CUSTOMER', 'TECHNICIAN')")
-	public ResponseEntity<Response<Page<Ticket>>> findAllByParameters(@PathVariable("page") int page,	@PathVariable("count") int count, @PathVariable("number") int number, @PathVariable("title") String title, @PathVariable("status") String status, @PathVariable("priority") String priority, @PathVariable("assignedUser") boolean assigned, HttpServletRequest httpServletRequest, BindingResult bindingResult){
+	public ResponseEntity<Response<Page<Ticket>>> findAllByParameters(@PathVariable("page") int page,	
+																	 @PathVariable("count") int count, 
+																	 @PathVariable("number") int number, 
+																	 @PathVariable("title") String title, 
+																	 @PathVariable("status") String status, 
+																	 @PathVariable("priority") String priority, 
+																	 @PathVariable("assigned") String assigned, 
+																	 HttpServletRequest httpServletRequest){
 		
 		Response<Page<Ticket>> response = new Response<>();
 		Page<Ticket> tickets = null;
+		boolean findByAssignedUser = false;
 		
 		try {
 			
@@ -228,13 +197,15 @@ public class TicketController {
 			
 				if(userRequest.getProfile().equals(ProfileEnum.ROLE_TECHNICIAN)) {
 					
-					if(assigned) {
+					findByAssignedUser = getAssigned(assigned, findByAssignedUser);
+					
+					if(findByAssignedUser ) {
 						tickets = ticketService.findByParametersAndAssignedUser(page, count, title, status, priority, userRequest.getId());
 					}else {
 						tickets = ticketService.findByParameters(page, count, title, status, priority);
 					}	
-				}else if(userRequest.getProfile().equals(ProfileEnum.ROLE_CUSTUMER)) {
-					tickets = ticketService.findByParametersAndAssignedUser(page, count, title, status, priority, userRequest.getId());
+				}else if(userRequest.getProfile().equals(ProfileEnum.ROLE_CUSTOMER)) {
+					tickets = ticketService.findByParametersCurrentUser(page, count, title, status, priority, userRequest.getId());
 				}
 			}
 			
@@ -257,44 +228,6 @@ public class TicketController {
 		}
 	}
 
-	private void findChangesToTicket(Ticket ticket) {
-		List<ChangeStatus> changes = new ArrayList<>();
-		Iterable<ChangeStatus> changesCurrentTicket = ticketService.listChangeStatus(ticket.getId());
-		
-		for(ChangeStatus changeStatus : changesCurrentTicket) {
-			changes.add(changeStatus);
-		}
-		
-		ticket.setChanges(changes);
-	}
-
-	@GetMapping("/{id}")
-	@PreAuthorize("hasAnyRole('CUSTOMER', 'TECHNICIAN')")
-	public ResponseEntity<Response<Ticket>> findById(@PathVariable("id") String id,	 HttpServletRequest httpServletRequest, BindingResult bindingResult){
-		
-		Response<Ticket> response = new Response<>();
-		
-		try {
-			
-			Ticket ticket = ticketService.findById(id);
-			
-			if(ticket == null) {
-				response.getErros().add("Register not Found. Id: " + id);
-				return ResponseEntity.badRequest().body(response);
-			}
-			
-			findChangesToTicket(ticket);
-			
-			response.setData(ticket);
-			
-			return ResponseEntity.ok().body(response);
-		} catch (Exception e) {
-			
-			response.getErros().add("Ticket erro: " + e.getMessage() + ", cause: " + e.getCause());
-			return ResponseEntity.badRequest().body(response);
-		}
-	}
-	
 	@PostMapping
 	@PreAuthorize("hasAnyRole('CUSTOMER')")
 	public ResponseEntity<Response<Ticket>> create(HttpServletRequest httpServletRequest, @RequestBody Ticket ticket, BindingResult bindingResult){
@@ -327,7 +260,7 @@ public class TicketController {
 			return ResponseEntity.badRequest().body(response);
 		}
 	}
-
+	
 	@PutMapping
 	@PreAuthorize("hasAnyRole('CUSTOMER')")
 	public ResponseEntity<Response<Ticket>> update(HttpServletRequest httpServletRequest, @RequestBody Ticket ticket, BindingResult bindingResult){
@@ -371,14 +304,98 @@ public class TicketController {
 			return ResponseEntity.badRequest().body(response);
 		}
 	}
+
+	@PutMapping(value="/{id}/{status}")
+	@PreAuthorize("hasAnyRole('CUSTOMER', 'TECHNICIAN')")
+	public ResponseEntity<Response<Ticket>> changeStatus(@PathVariable("id") String id, @PathVariable("status") String status, HttpServletRequest httpServletRequest, @RequestBody Ticket ticket, BindingResult bindingResult){
+		
+		Response<Ticket> response = new Response<>();
+		
+		try {
+			
+			validateChangeStatusTicket(id, status, bindingResult);
+			
+			if(bindingResult.hasErrors()) {
+				bindingResult.getAllErrors().forEach(error -> response.getErros().add(error.getDefaultMessage()));
+				return ResponseEntity.badRequest().body(response);
+			}
+			
+			Ticket currentTicket = ticketService.findById(id);
+			currentTicket.setStatus(StatusEnum.getStatus(status));
+			
+			if(status.equals("Assigned")) {		
+				currentTicket.setUser(getUserFromRequest(httpServletRequest));
+			}
+			
+			Ticket ticketPersisted = ticketService.createOrUpdate(currentTicket);
+			
+			ChangeStatus changeStatus = new ChangeStatus();
+			changeStatus.setUserChange(getUserFromRequest(httpServletRequest));
+			changeStatus.setStatus(StatusEnum.getStatus(status));
+			changeStatus.setTicket(ticketPersisted);
+			
+			ticketService.createChangeStatus(changeStatus);
+			
+			response.setData(ticketPersisted);
+			
+			return ResponseEntity.ok().body(response);
+		} catch (Exception e) {
+			
+			response.getErros().add("Ticket erro: " + e.getMessage() + ", cause: " + e.getCause());
+			return ResponseEntity.badRequest().body(response);
+		}
+	}
+
+	
+	@DeleteMapping("/{id}")
+	@PreAuthorize("hasAnyRole('CUSTOMER')")
+	public ResponseEntity<Response<String>> deleteById(@PathVariable("id") String id, HttpServletRequest httpServletRequest){
+		
+		Response<String> response = new Response<>();
+		
+		try {
+			
+			Ticket ticket = ticketService.findById(id);
+			
+			if(ticket == null) {
+				response.getErros().add("Register not Found. Id: " + id);
+				return ResponseEntity.badRequest().body(response);
+			}
+			
+			ticketService.delete(id);
+			
+			response.setData("Success exclusion.");
+			
+			return ResponseEntity.ok().body(response);
+		} catch (Exception e) {
+			
+			response.getErros().add("Ticket erro: " + e.getMessage() + ", cause: " + e.getCause());
+			return ResponseEntity.badRequest().body(response);
+		}
+	}
+
 	
 	private Integer generateNumberToTicket() {
 		return (new Random()).nextInt(9999);
 	}
 
+
+
+	private void findChangesToTicket(Ticket ticket) {
+		List<ChangeStatus> changes = new ArrayList<>();
+		Iterable<ChangeStatus> changesCurrentTicket = ticketService.listChangeStatus(ticket.getId());
+		
+		for(ChangeStatus changeStatus : changesCurrentTicket) {
+			changes.add(changeStatus);
+		}
+		
+		ticket.setChanges(changes);
+	}
+
+	
 	private User getUserFromRequest(HttpServletRequest httpServletRequest) {
 		
-		String token = httpServletRequest.getHeader("Autorization");
+		String token = httpServletRequest.getHeader("Authorization");
 		String email = jwtTokenUtil.getUsernameFromToken(token);
 		
 		return userService.findByEmail(email);
@@ -411,6 +428,17 @@ public class TicketController {
 		if(status == null || status.equals("")) {
 			bindingResult.addError(new ObjectError("Ticket", "No informed Status."));
 		}
+	}
+
+	private boolean getAssigned(String assigned, boolean findByAssignedUser) {
+		if(assigned != null ) {
+			assigned = assigned.trim();
+			
+			if(assigned.equalsIgnoreCase("true") || assigned.equalsIgnoreCase("false")) {
+				findByAssignedUser = Boolean.parseBoolean(assigned);
+			}
+		}
+		return findByAssignedUser;
 	}
 
 }
